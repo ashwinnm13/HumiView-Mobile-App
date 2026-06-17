@@ -11,8 +11,8 @@ class Doctor {
     required this.id,
     required this.name,
     required this.email,
-    this.specialization = 'Pulmonology',
-    this.hospital = 'City General Hospital',
+    this.specialization = 'General Medicine',
+    this.hospital = 'JIMPER, Puducherry',
     this.photoUrl = '',
   });
 

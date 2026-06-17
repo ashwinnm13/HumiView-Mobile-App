@@ -20,10 +20,11 @@ class PatientHeader extends StatelessWidget {
         CircleAvatar(
           radius: 28,
           backgroundColor: AppColors.primarySurface,
-          child: Text(
+          backgroundImage: patient.photoUrl.isNotEmpty ? NetworkImage(patient.photoUrl) : null,
+          child: patient.photoUrl.isEmpty ? Text(
             patient.initials,
             style: AppTypography.titleLarge.copyWith(color: AppColors.primary),
-          ),
+          ) : null,
         ),
         const SizedBox(width: 16),
         Expanded(

@@ -41,10 +41,11 @@ class _SplashScreenState extends State<SplashScreen> {
                   color: AppColors.surface.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  AppIcons.shield,
-                  size: 80,
-                  color: AppColors.surface,
+                child: Image.asset(
+                  'assets/images/logo_circle.png',
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
                 ),
               ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack).fadeIn(),
               const SizedBox(height: 32),

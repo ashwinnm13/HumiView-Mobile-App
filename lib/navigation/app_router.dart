@@ -10,6 +10,7 @@ import '../screens/alerts/alert_center_screen.dart';
 import '../screens/alerts/notifications_screen.dart';
 import '../screens/analytics/analytics_screen.dart';
 import '../screens/profile/profile_screen.dart';
+import '../screens/patient/add_patient_screen.dart';
 import '../providers/auth_provider.dart';
 
 class AppRouter {
@@ -113,6 +114,11 @@ class AppRouter {
           path: '/notifications',
           parentNavigatorKey: rootNavigatorKey,
           builder: (context, state) => const NotificationsScreen(),
+        ),
+        GoRoute(
+          path: '/add-patient',
+          parentNavigatorKey: rootNavigatorKey,
+          builder: (context, state) => const AddPatientScreen(),
         ),
       ],
     );

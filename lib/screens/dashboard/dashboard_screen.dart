@@ -37,9 +37,9 @@ class DashboardScreen extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
+        onPressed: () => context.push('/add-patient'),
         icon: const Icon(AppIcons.add),
-        label: const Text(AppStrings.addDevice),
+        label: const Text('Add Patient'),
       ),
     );
   }
@@ -47,7 +47,7 @@ class DashboardScreen extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     return Container(
       padding: EdgeInsets.fromLTRB(context.screenPaddingH, 24, context.screenPaddingH, 16),
-      color: AppColors.surface,
+      color: Theme.of(context).cardTheme.color ?? Theme.of(context).colorScheme.surface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -59,12 +59,12 @@ class DashboardScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppStrings.greeting('Dr. Smith'),
+                      AppStrings.greeting('Dr. Lenin Babu'),
                       style: AppTypography.headlineMedium,
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'City General Hospital • ICU Unit',
+                      'JIMPER, Puducherry • ICU Unit',
                       style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
                     ),
                   ],
@@ -100,7 +100,7 @@ class DashboardScreen extends StatelessWidget {
             IconButton(
               icon: const Icon(AppIcons.notification, size: 28),
               onPressed: () => context.push('/notifications'),
-              color: AppColors.textPrimary,
+              color: Theme.of(context).iconTheme.color ?? AppColors.textPrimary,
             ),
             if (unreadCount > 0)
               Positioned(
@@ -148,8 +148,17 @@ class DashboardScreen extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: FilterChip(
-              label: Text(filter),
+              label: Text(
+                filter,
+                style: TextStyle(
+                  color: isSelected ? AppColors.textOnPrimary : Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textPrimary,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
               selected: isSelected,
+              selectedColor: AppColors.primary,
+              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+              side: BorderSide.none,
               onSelected: (_) => provider.setFilter(filter),
               showCheckmark: false,
             ),
@@ -207,7 +216,7 @@ class DashboardScreen extends StatelessWidget {
                 crossAxisCount: context.gridColumns,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                mainAxisExtent: 220,
+                mainAxisExtent: 240,
               ),
               itemCount: provider.patients.length,
               itemBuilder: (context, index) {

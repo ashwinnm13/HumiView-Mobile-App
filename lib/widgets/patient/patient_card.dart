@@ -37,10 +37,11 @@ class PatientCard extends StatelessWidget {
               CircleAvatar(
                 radius: 24,
                 backgroundColor: AppColors.primarySurface,
-                child: Text(
+                backgroundImage: patient.photoUrl.isNotEmpty ? NetworkImage(patient.photoUrl) : null,
+                child: patient.photoUrl.isEmpty ? Text(
                   patient.initials,
                   style: AppTypography.titleMedium.copyWith(color: AppColors.primary),
-                ),
+                ) : null,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -54,20 +55,32 @@ class PatientCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
-                    Row(
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      runSpacing: 4,
                       children: [
-                        Icon(AppIcons.room, size: 14, color: AppColors.textSecondary),
-                        const SizedBox(width: 4),
-                        Text(
-                          patient.roomNumber,
-                          style: AppTypography.caption,
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(AppIcons.room, size: 14, color: AppColors.textSecondary),
+                            const SizedBox(width: 4),
+                            Text(
+                              patient.roomNumber,
+                              style: AppTypography.caption,
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 12),
-                        Icon(AppIcons.device, size: 14, color: AppColors.textSecondary),
-                        const SizedBox(width: 4),
-                        Text(
-                          patient.deviceId,
-                          style: AppTypography.caption,
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(AppIcons.device, size: 14, color: AppColors.textSecondary),
+                            const SizedBox(width: 4),
+                            Text(
+                              patient.deviceId,
+                              style: AppTypography.caption,
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -83,20 +96,26 @@ class PatientCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildMiniMetric(
-                AppIcons.temperature,
-                patient.latestReading != null ? '${patient.latestReading!.temperature}°C' : '--',
-                patient.status == PatientStatus.critical ? AppColors.critical : AppColors.textPrimary,
+              Expanded(
+                child: _buildMiniMetric(
+                  AppIcons.temperature,
+                  patient.latestReading != null ? '${patient.latestReading!.temperature}°C' : '--',
+                  patient.status == PatientStatus.critical ? AppColors.critical : (Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textPrimary),
+                ),
               ),
-              _buildMiniMetric(
-                AppIcons.humidity,
-                patient.latestReading != null ? '${patient.latestReading!.relativeHumidity}%' : '--',
-                AppColors.textPrimary,
+              Expanded(
+                child: _buildMiniMetric(
+                  AppIcons.humidity,
+                  patient.latestReading != null ? '${patient.latestReading!.relativeHumidity}%' : '--',
+                  Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textPrimary,
+                ),
               ),
-              _buildMiniMetric(
-                AppIcons.heater,
-                patient.heaterStatus.statusText,
-                patient.heaterStatus.isActive ? AppColors.warning : AppColors.textSecondary,
+              Expanded(
+                child: _buildMiniMetric(
+                  AppIcons.heater,
+                  patient.heaterStatus.statusText,
+                  patient.heaterStatus.isActive ? AppColors.warning : AppColors.textSecondary,
+                ),
               ),
             ],
           ),
@@ -111,9 +130,12 @@ class PatientCard extends StatelessWidget {
       children: [
         Icon(icon, size: 16, color: color),
         const SizedBox(width: 4),
-        Text(
-          value,
-          style: AppTypography.labelMedium.copyWith(color: color),
+        Flexible(
+          child: Text(
+            value,
+            style: AppTypography.labelMedium.copyWith(color: color),
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
     );

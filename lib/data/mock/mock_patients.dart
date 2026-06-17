@@ -10,7 +10,7 @@ class MockPatients {
     Patient(
       id: 'P001',
       name: 'Arjun Sharma',
-      photoUrl: '',
+      photoUrl: 'https://i.pravatar.cc/150?img=11',
       roomNumber: 'ICU-101',
       deviceId: 'ESP-A4F2',
       connectionType: ConnectionType.wifi,
@@ -37,7 +37,7 @@ class MockPatients {
     Patient(
       id: 'P002',
       name: 'Priya Patel',
-      photoUrl: '',
+      photoUrl: 'https://i.pravatar.cc/150?img=5',
       roomNumber: 'ICU-102',
       deviceId: 'ESP-B7D1',
       connectionType: ConnectionType.wifi,
@@ -64,7 +64,7 @@ class MockPatients {
     Patient(
       id: 'P003',
       name: 'Rajesh Kumar',
-      photoUrl: '',
+      photoUrl: 'https://i.pravatar.cc/150?img=12',
       roomNumber: 'ICU-103',
       deviceId: 'ESP-C3E9',
       connectionType: ConnectionType.usb,
@@ -91,7 +91,7 @@ class MockPatients {
     Patient(
       id: 'P004',
       name: 'Meera Reddy',
-      photoUrl: '',
+      photoUrl: 'https://i.pravatar.cc/150?img=20',
       roomNumber: 'ICU-104',
       deviceId: 'ESP-D8A5',
       connectionType: ConnectionType.wifi,
@@ -118,7 +118,7 @@ class MockPatients {
     Patient(
       id: 'P005',
       name: 'Vikram Singh',
-      photoUrl: '',
+      photoUrl: 'https://i.pravatar.cc/150?img=13',
       roomNumber: 'ICU-105',
       deviceId: 'ESP-E2B6',
       connectionType: ConnectionType.wifi,
@@ -141,7 +141,7 @@ class MockPatients {
     Patient(
       id: 'P006',
       name: 'Ananya Gupta',
-      photoUrl: '',
+      photoUrl: 'https://i.pravatar.cc/150?img=21',
       roomNumber: 'ICU-106',
       deviceId: 'ESP-F1C4',
       connectionType: ConnectionType.wifi,
@@ -168,7 +168,7 @@ class MockPatients {
     Patient(
       id: 'P007',
       name: 'Suresh Nair',
-      photoUrl: '',
+      photoUrl: 'https://i.pravatar.cc/150?img=14',
       roomNumber: 'ICU-107',
       deviceId: 'ESP-G5D7',
       connectionType: ConnectionType.usb,
@@ -195,7 +195,7 @@ class MockPatients {
     Patient(
       id: 'P008',
       name: 'Kavita Joshi',
-      photoUrl: '',
+      photoUrl: 'https://i.pravatar.cc/150?img=22',
       roomNumber: 'ICU-108',
       deviceId: 'ESP-H9E3',
       connectionType: ConnectionType.wifi,
@@ -222,7 +222,7 @@ class MockPatients {
     Patient(
       id: 'P009',
       name: 'Amit Desai',
-      photoUrl: '',
+      photoUrl: 'https://i.pravatar.cc/150?img=15',
       roomNumber: 'Ward-201',
       deviceId: 'ESP-I4F8',
       connectionType: ConnectionType.wifi,
@@ -249,7 +249,7 @@ class MockPatients {
     Patient(
       id: 'P010',
       name: 'Lakshmi Iyer',
-      photoUrl: '',
+      photoUrl: 'https://i.pravatar.cc/150?img=23',
       roomNumber: 'Ward-202',
       deviceId: 'ESP-J6G2',
       connectionType: ConnectionType.wifi,

@@ -72,7 +72,7 @@ class MetricTile extends StatelessWidget {
               Text(
                 value,
                 style: AppTypography.metricMedium.copyWith(
-                  color: isCritical ? AppColors.critical : AppColors.textPrimary,
+                  color: isCritical ? AppColors.critical : Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textPrimary,
                 ),
               ),
               const SizedBox(width: 4),

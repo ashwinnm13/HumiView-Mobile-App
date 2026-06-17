@@ -70,7 +70,7 @@ class ProfileScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Dr. Smith', style: AppTypography.headlineMedium),
+                Text('Dr. Lenin Babu', style: AppTypography.headlineMedium),
                 const SizedBox(height: 4),
                 Text(
                   'Senior Pulmonologist',
