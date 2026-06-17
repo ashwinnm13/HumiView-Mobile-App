@@ -171,6 +171,22 @@ class _LiveMonitoringScreenState extends State<LiveMonitoringScreen> {
             ),
           ),
         ),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 250,
+          child: AppCard(
+            margin: EdgeInsets.zero,
+            child: LiveLineChart(
+              title: AppStrings.ahTrend,
+              data: provider.liveData,
+              unit: ' g/m³',
+              gradient: AppColors.primaryGradient,
+              minY: 0.0,
+              maxY: 50.0,
+              valueMapper: (r) => r.absoluteHumidity,
+            ),
+          ),
+        ),
       ],
     );
   }

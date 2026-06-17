@@ -56,6 +56,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   const SizedBox(height: 24),
                   _buildHumidityTrend(),
                   const SizedBox(height: 24),
+                  _buildAbsoluteHumidityTrend(),
+                  const SizedBox(height: 24),
                   _buildConnectionStability(),
                 ],
               ),
@@ -66,6 +68,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       Expanded(child: _buildTemperatureTrend()),
                       const SizedBox(width: 16),
                       Expanded(child: _buildHumidityTrend()),
+                      const SizedBox(width: 16),
+                      Expanded(child: _buildAbsoluteHumidityTrend()),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -170,11 +174,28 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         margin: EdgeInsets.zero,
         padding: const EdgeInsets.all(20),
         child: TrendChart(
-          title: 'Avg Humidity Trend',
+          title: 'Avg Relative Humidity Trend',
           data: MockAnalytics.weeklyHumidity(),
           gradient: AppColors.humidityGradient,
           minY: 30.0,
           maxY: 100.0,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAbsoluteHumidityTrend() {
+    return SizedBox(
+      height: 300,
+      child: AppCard(
+        margin: EdgeInsets.zero,
+        padding: const EdgeInsets.all(20),
+        child: TrendChart(
+          title: 'Avg Absolute Humidity Trend',
+          data: MockAnalytics.weeklyAbsoluteHumidity(),
+          gradient: AppColors.primaryGradient,
+          minY: 0.0,
+          maxY: 50.0,
         ),
       ),
     );

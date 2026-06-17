@@ -46,9 +46,12 @@ class PatientHeader extends StatelessWidget {
                   const SizedBox(width: 16),
                   Icon(AppIcons.device, size: 16, color: AppColors.textSecondary),
                   const SizedBox(width: 4),
-                  Text(
-                    patient.deviceId,
-                    style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
+                  Flexible(
+                    child: Text(
+                      patient.deviceId,
+                      style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_typography.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/constants/app_icons.dart';
 import '../../core/responsive/responsive_utils.dart';

@@ -34,7 +34,7 @@ class PatientMetrics extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
-          childAspectRatio: 1.5,
+          childAspectRatio: 1.2,
           children: [
             MetricTile(
               title: AppStrings.temperature,

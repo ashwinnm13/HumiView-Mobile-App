@@ -34,6 +34,20 @@ class MockAnalytics {
     });
   }
 
+  /// Daily average absolute humidity for the past 7 days
+  static List<DailyMetric> weeklyAbsoluteHumidity() {
+    final now = DateTime.now();
+    return List.generate(7, (i) {
+      final date = now.subtract(Duration(days: 6 - i));
+      return DailyMetric(
+        date: date,
+        avg: 15.0 + _random.nextDouble() * 5.0,
+        min: 10.0 + _random.nextDouble() * 5.0,
+        max: 20.0 + _random.nextDouble() * 10.0,
+      );
+    });
+  }
+
   /// Connection stability percentages per day
   static List<DailyValue> connectionStability() {
     final now = DateTime.now();
