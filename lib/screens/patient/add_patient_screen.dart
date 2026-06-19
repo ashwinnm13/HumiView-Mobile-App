@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/constants/app_icons.dart';
+import '../../providers/patient_provider.dart';
 
 class AddPatientScreen extends StatefulWidget {
   const AddPatientScreen({super.key});
@@ -16,6 +18,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
   final _nameController = TextEditingController();
   final _wardController = TextEditingController();
   final _deviceController = TextEditingController();
+  bool _isSubmitting = false;
   
   @override
   void dispose() {
@@ -25,12 +28,33 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
     super.dispose();
   }
 
-  void _submit() {
-    if (_formKey.currentState?.validate() ?? false) {
+  Future<void> _submit() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() => _isSubmitting = true);
+
+    final provider = context.read<PatientProvider>();
+    final success = await provider.addPatient(
+      name: _nameController.text.trim(),
+      roomNumber: _wardController.text.trim(),
+      deviceId: _deviceController.text.trim(),
+    );
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+
+    if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Patient added successfully')),
       );
       context.pop();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(provider.errorMessage ?? 'Failed to add patient'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -111,8 +135,14 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
               ),
               const SizedBox(height: 32),
               ElevatedButton(
-                onPressed: _submit,
-                child: const Text('Add Patient'),
+                onPressed: _isSubmitting ? null : _submit,
+                child: _isSubmitting
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Add Patient'),
               ),
             ],
           ),

@@ -5,9 +5,11 @@ import '../data/models/sensor_reading.dart';
 import '../data/models/heater_status.dart';
 import '../data/mock/mock_readings.dart';
 import 'patient_provider.dart';
+import '../services/sensor_api_service.dart';
 
 class MonitoringProvider extends ChangeNotifier {
   final PatientProvider _patientProvider;
+  final SensorApiService _sensorApiService = SensorApiService();
   
   Patient? _currentPatient;
   List<SensorReading> _liveData = [];
@@ -24,7 +26,7 @@ class MonitoringProvider extends ChangeNotifier {
   bool get isPaused => _isPaused;
   int get timeRangeMinutes => _timeRangeMinutes;
 
-  void startMonitoring(String patientId) {
+  void startMonitoring(String patientId) async {
     // Clean up previous monitoring session
     stopMonitoring();
 
@@ -39,6 +41,17 @@ class MonitoringProvider extends ChangeNotifier {
     } else {
       _liveData = MockReadings.stablePatientReadings();
     }
+
+    // Example of fetching real historical data from backend:
+    // try {
+    //   final allReadings = await _sensorApiService.getAllReadings();
+    //   final patientReadings = allReadings.where((r) => r.patientId == patientId).toList();
+    //   if (patientReadings.isNotEmpty) {
+    //     _liveData = patientReadings;
+    //   }
+    // } catch (e) {
+    //   debugPrint('Failed to load historical sensor data: $e');
+    // }
 
     notifyListeners();
 
@@ -84,11 +97,17 @@ class MonitoringProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _generateNextReading() {
+  Future<void> _generateNextReading() async {
     if (_currentPatient == null || _liveData.isEmpty) return;
 
     // Generate new point based on last point
-    final nextReading = MockReadings.generateNextReading(_liveData.last);
+    var nextReading = MockReadings.generateNextReading(_liveData.last);
+    
+    // Assign the patient ID so it gets saved to the correct patient in Spring Boot
+    nextReading = nextReading.copyWith(
+      patientId: _currentPatient!.id,
+      heaterStatus: _currentPatient!.heaterStatus.isActive ? 1 : 0,
+    );
     
     // Add to chart data
     _liveData.add(nextReading);
@@ -116,6 +135,13 @@ class MonitoringProvider extends ChangeNotifier {
     
     _patientProvider.updatePatientReadings(_currentPatient!.id, _currentPatient!);
     notifyListeners();
+
+    // Fire and forget POST to backend to simulate ESP32 sending data
+    try {
+      await _sensorApiService.saveReading(nextReading);
+    } catch (e) {
+      debugPrint('Failed to save sensor reading to backend: $e');
+    }
   }
 
   @override
@@ -124,3 +150,4 @@ class MonitoringProvider extends ChangeNotifier {
     super.dispose();
   }
 }
+

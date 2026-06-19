@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import '../data/models/patient.dart';
-import '../data/mock/mock_patients.dart';
+import '../data/models/heater_status.dart';
+import '../services/patient_api_service.dart';
 
 class PatientProvider extends ChangeNotifier {
+  final PatientApiService _apiService = PatientApiService();
+
   List<Patient> _allPatients = [];
   List<Patient> _filteredPatients = [];
   bool _isLoading = false;
   String _searchQuery = '';
   String _currentFilter = 'All';
+  String? _errorMessage;
 
   PatientProvider() {
     _loadPatients();
@@ -17,16 +21,22 @@ class PatientProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String get searchQuery => _searchQuery;
   String get currentFilter => _currentFilter;
+  String? get errorMessage => _errorMessage;
+  bool get hasError => _errorMessage != null;
 
   Future<void> _loadPatients() async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
-    // Simulate network delay for realism
-    await Future.delayed(const Duration(seconds: 1));
-
-    _allPatients = List.from(MockPatients.patients);
-    _applyFilters();
+    try {
+      _allPatients = await _apiService.getAllPatients();
+      _applyFilters();
+    } catch (e) {
+      _errorMessage = e.toString();
+      _allPatients = [];
+      _filteredPatients = [];
+    }
 
     _isLoading = false;
     notifyListeners();
@@ -34,6 +44,36 @@ class PatientProvider extends ChangeNotifier {
 
   Future<void> refresh() async {
     await _loadPatients();
+  }
+
+  /// Adds a new patient by POSTing to the Spring Boot backend.
+  Future<bool> addPatient({
+    required String name,
+    required String roomNumber,
+    required String deviceId,
+  }) async {
+    try {
+      final newPatient = Patient(
+        id: '', // Backend will auto-generate
+        name: name,
+        photoUrl: '',
+        roomNumber: roomNumber,
+        deviceId: deviceId,
+        connectionType: ConnectionType.wifi,
+        connectionStatus: ConnectionStatus.offline,
+        status: PatientStatus.stable,
+        heaterStatus: const HeaterStatus(),
+      );
+
+      final savedPatient = await _apiService.savePatient(newPatient);
+      _allPatients.add(savedPatient);
+      _applyFilters();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
   }
 
   void setSearchQuery(String query) {
