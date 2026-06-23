@@ -23,8 +23,8 @@ class AdaptiveNav extends StatelessWidget {
         onDestinationSelected: onDestinationSelected,
         labelType: NavigationRailLabelType.all,
         groupAlignment: 0.0,
-        destinations: const [
-          NavigationRailDestination(
+        destinations: [
+          const NavigationRailDestination(
             icon: Icon(AppIcons.patients),
             selectedIcon: Icon(AppIcons.patientsActive),
             label: Text(AppStrings.patients),
@@ -48,12 +48,12 @@ class AdaptiveNav extends StatelessWidget {
             ),
             label: const Text(AppStrings.alerts),
           ),
-          NavigationRailDestination(
+          const NavigationRailDestination(
             icon: Icon(AppIcons.analytics),
             selectedIcon: Icon(AppIcons.analyticsActive),
             label: Text(AppStrings.analytics),
           ),
-          NavigationRailDestination(
+          const NavigationRailDestination(
             icon: Icon(AppIcons.profile),
             selectedIcon: Icon(AppIcons.profileActive),
             label: Text(AppStrings.profile),
@@ -65,8 +65,8 @@ class AdaptiveNav extends StatelessWidget {
     return NavigationBar(
       selectedIndex: currentIndex,
       onDestinationSelected: onDestinationSelected,
-      destinations: const [
-        NavigationDestination(
+      destinations: [
+        const NavigationDestination(
           icon: Icon(AppIcons.patients),
           selectedIcon: Icon(AppIcons.patientsActive),
           label: AppStrings.patients,
@@ -90,12 +90,12 @@ class AdaptiveNav extends StatelessWidget {
           ),
           label: AppStrings.alerts,
         ),
-        NavigationDestination(
+        const NavigationDestination(
           icon: Icon(AppIcons.analytics),
           selectedIcon: Icon(AppIcons.analyticsActive),
           label: AppStrings.analytics,
         ),
-        NavigationDestination(
+        const NavigationDestination(
           icon: Icon(AppIcons.profile),
           selectedIcon: Icon(AppIcons.profileActive),
           label: AppStrings.profile,
