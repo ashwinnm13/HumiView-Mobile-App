@@ -60,14 +60,25 @@ class SensorReading {
 
   /// Converts to JSON for the Spring Boot `POST /sensor` endpoint.
   Map<String, dynamic> toJson() {
-    return {
-      if (id != null) 'id': id,
-      'timestamp': timestamp.toIso8601String(),
+    final map = <String, dynamic>{
       'temperature': temperature,
       'relativeHumidity': relativeHumidity,
       'absoluteHumidity': absoluteHumidity,
       'heaterStatus': heaterStatus,
-      'patientId': int.tryParse(patientId ?? '0'),
+      // Strip 'Z' if present, as Spring Boot's LocalDateTime doesn't expect timezone info
+      'timestamp': timestamp.toIso8601String().replaceAll('Z', ''),
     };
+
+    if (id != null) {
+      final parsedId = int.tryParse(id!);
+      if (parsedId != null) map['id'] = parsedId;
+    }
+
+    if (patientId != null) {
+      final parsedPatientId = int.tryParse(patientId!);
+      if (parsedPatientId != null) map['patientId'] = parsedPatientId;
+    }
+
+    return map;
   }
 }

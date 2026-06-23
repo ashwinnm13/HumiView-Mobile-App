@@ -36,6 +36,33 @@ class SensorApiService {
     }
   }
 
+  /// Fetches the latest sensor reading for a specific patient.
+  Future<SensorReading?> getLatestReading(String patientId) async {
+    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.sensorEndpoint}/latest/$patientId');
+
+    try {
+      final response = await _client
+          .get(uri, headers: {'Accept': 'application/json'})
+          .timeout(ApiConstants.connectionTimeout);
+
+      if (response.statusCode == 200) {
+        if (response.body.trim().isEmpty) {
+          return null; // Spring Boot returns empty body when returning null
+        }
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+        return SensorReading.fromJson(json);
+      } else if (response.statusCode == 404 || response.statusCode == 204) {
+        return null;
+      } else {
+        throw HttpException(
+          'Failed to load latest reading: ${response.statusCode} ${response.reasonPhrase}',
+        );
+      }
+    } on SocketException {
+      throw const SocketException('Could not connect to the server. Is the backend running?');
+    }
+  }
+
   /// Saves a new sensor reading via `POST /sensor`.
   Future<SensorReading> saveReading(SensorReading reading) async {
     final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.sensorEndpoint}');

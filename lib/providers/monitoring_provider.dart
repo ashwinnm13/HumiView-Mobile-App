@@ -33,33 +33,37 @@ class MonitoringProvider extends ChangeNotifier {
     _currentPatient = _patientProvider.getPatientById(patientId);
     if (_currentPatient == null) return;
 
-    // Load initial historical data based on patient status
-    if (_currentPatient!.status == PatientStatus.critical) {
-      _liveData = MockReadings.criticalPatientReadings();
-    } else if (_currentPatient!.status == PatientStatus.warning) {
-      _liveData = MockReadings.warningPatientReadings();
-    } else {
-      _liveData = MockReadings.stablePatientReadings();
+    // Fetch real historical data from backend
+    try {
+      final allReadings = await _sensorApiService.getAllReadings();
+      final patientReadings = allReadings.where((r) => r.patientId == patientId).toList();
+      patientReadings.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      
+      if (patientReadings.isNotEmpty) {
+        _liveData = patientReadings.length > 100 
+            ? patientReadings.sublist(patientReadings.length - 100) 
+            : patientReadings;
+            
+        final latest = _liveData.last;
+        _currentPatient = _currentPatient!.copyWith(
+          latestReading: latest,
+          lastSyncTime: latest.timestamp,
+        );
+      } else {
+        _liveData = [];
+      }
+    } catch (e) {
+      debugPrint('Failed to load historical sensor data: $e');
+      _liveData = [];
     }
-
-    // Example of fetching real historical data from backend:
-    // try {
-    //   final allReadings = await _sensorApiService.getAllReadings();
-    //   final patientReadings = allReadings.where((r) => r.patientId == patientId).toList();
-    //   if (patientReadings.isNotEmpty) {
-    //     _liveData = patientReadings;
-    //   }
-    // } catch (e) {
-    //   debugPrint('Failed to load historical sensor data: $e');
-    // }
 
     notifyListeners();
 
-    // Start live updates (every 2 seconds for demo purposes)
+    // Start live updates (every 2 seconds)
     if (_currentPatient!.connectionStatus != ConnectionStatus.offline) {
       _timer = Timer.periodic(const Duration(seconds: 2), (_) {
         if (!_isPaused) {
-          _generateNextReading();
+          _fetchLatestReading();
         }
       });
     }
@@ -97,50 +101,49 @@ class MonitoringProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _generateNextReading() async {
-    if (_currentPatient == null || _liveData.isEmpty) return;
+  Future<void> _fetchLatestReading() async {
+    if (_currentPatient == null) return;
 
-    // Generate new point based on last point
-    var nextReading = MockReadings.generateNextReading(_liveData.last);
-    
-    // Assign the patient ID so it gets saved to the correct patient in Spring Boot
-    nextReading = nextReading.copyWith(
-      patientId: _currentPatient!.id,
-      heaterStatus: _currentPatient!.heaterStatus.isActive ? 1 : 0,
-    );
-    
-    // Add to chart data
-    _liveData.add(nextReading);
-    
-    // Keep list size manageable (e.g., last 100 points)
-    if (_liveData.length > 100) {
-      _liveData.removeAt(0);
-    }
-
-    // Determine status based on thresholds
-    PatientStatus newStatus = PatientStatus.stable;
-    if (nextReading.temperature > 39.0 || nextReading.relativeHumidity > 85.0) {
-      newStatus = PatientStatus.critical;
-    } else if (nextReading.temperature > 37.5 || nextReading.relativeHumidity > 75.0) {
-      newStatus = PatientStatus.warning;
-    }
-
-    // Update patient in provider
-    _currentPatient = _currentPatient!.copyWith(
-      latestReading: nextReading,
-      status: newStatus,
-      lastSyncTime: nextReading.timestamp,
-      signalStrength: nextReading.signalStrength,
-    );
-    
-    _patientProvider.updatePatientReadings(_currentPatient!.id, _currentPatient!);
-    notifyListeners();
-
-    // Fire and forget POST to backend to simulate ESP32 sending data
     try {
-      await _sensorApiService.saveReading(nextReading);
+      final nextReading = await _sensorApiService.getLatestReading(_currentPatient!.id);
+      if (nextReading == null) return;
+
+      // Only add if it's a new reading based on timestamp
+      if (_liveData.isNotEmpty) {
+        final lastTimestamp = _liveData.last.timestamp;
+        if (!nextReading.timestamp.isAfter(lastTimestamp)) {
+          return; // No new data
+        }
+      }
+
+      // Add to chart data
+      _liveData.add(nextReading);
+      
+      // Keep list size manageable (e.g., last 100 points)
+      if (_liveData.length > 100) {
+        _liveData.removeAt(0);
+      }
+
+      // Determine status based on thresholds
+      PatientStatus newStatus = PatientStatus.stable;
+      if (nextReading.temperature > 39.0 || nextReading.relativeHumidity > 85.0) {
+        newStatus = PatientStatus.critical;
+      } else if (nextReading.temperature > 37.5 || nextReading.relativeHumidity > 75.0) {
+        newStatus = PatientStatus.warning;
+      }
+
+      // Update patient in provider
+      _currentPatient = _currentPatient!.copyWith(
+        latestReading: nextReading,
+        status: newStatus,
+        lastSyncTime: nextReading.timestamp,
+        signalStrength: nextReading.signalStrength,
+      );
+      
+      _patientProvider.updatePatientReadings(_currentPatient!.id, _currentPatient!);
+      notifyListeners();
     } catch (e) {
-      debugPrint('Failed to save sensor reading to backend: $e');
+      debugPrint('Failed to load latest sensor reading from backend: $e');
     }
   }
 

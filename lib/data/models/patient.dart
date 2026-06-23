@@ -90,13 +90,23 @@ class Patient {
 
   /// Converts to JSON for the Spring Boot `POST /api/patients` endpoint.
   Map<String, dynamic> toJson() {
-    return {
+    final map = <String, dynamic>{
       'patientName': name,
-      'patientId': id,
       'roomNumber': roomNumber,
       'deviceId': deviceId,
       'status': status.name,
     };
+    
+    if (id.isNotEmpty) {
+      final parsedId = int.tryParse(id);
+      if (parsedId != null) {
+        map['patientId'] = parsedId;
+      } else {
+        map['patientId'] = id;
+      }
+    }
+
+    return map;
   }
 
   /// Maps a backend status string to [PatientStatus].

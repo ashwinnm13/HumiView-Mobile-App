@@ -29,7 +29,7 @@ class _LiveMonitoringScreenState extends State<LiveMonitoringScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<MonitoringProvider>().startMonitoring(widget.patientId);
     });
-  }
+  } 
 
   @override
   void dispose() {

@@ -9,7 +9,7 @@ class ApiConstants {
 
   // ── Base URL ──────────────────────────────────────────────────────────
   // Change this to your machine's local IP when running on a physical device.
-  static const String baseUrl = 'http://192.168.1.85:8080';
+  static const String baseUrl = 'http://192.168.1.46:8080';
 
   // ── Endpoints ─────────────────────────────────────────────────────────
   static const String patientsEndpoint = '/patients';
