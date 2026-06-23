@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../data/models/patient.dart';
 import '../data/models/heater_status.dart';
 import '../services/patient_api_service.dart';
+import '../services/sensor_api_service.dart';
 
 class PatientProvider extends ChangeNotifier {
   final PatientApiService _apiService = PatientApiService();
@@ -31,6 +32,20 @@ class PatientProvider extends ChangeNotifier {
 
     try {
       _allPatients = await _apiService.getAllPatients();
+      
+      // Fetch latest reading for each patient to display on the dashboard cards
+      final sensorApi = SensorApiService();
+      for (int i = 0; i < _allPatients.length; i++) {
+        try {
+          final latest = await sensorApi.getLatestReading(_allPatients[i].id);
+          if (latest != null) {
+            _allPatients[i] = _allPatients[i].copyWith(latestReading: latest);
+          }
+        } catch (_) {
+          // Ignore individual fetch errors so the rest of the list loads
+        }
+      }
+
       _applyFilters();
     } catch (e) {
       _errorMessage = e.toString();

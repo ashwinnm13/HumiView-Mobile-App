@@ -10,7 +10,7 @@ class AlertApiService {
 
   /// Fetch all alerts across all patients
   Future<List<Alert>> getAllAlerts() async {
-    final uri = Uri.parse('${ApiConstants.baseUrl}/alert');
+    final uri = Uri.parse('${ApiConstants.baseUrl}/alerts');
 
     try {
       final response = await _client
@@ -31,7 +31,7 @@ class AlertApiService {
 
   /// Fetch alerts for a specific patient
   Future<List<Alert>> getAlertsByPatientId(String patientId) async {
-    final uri = Uri.parse('${ApiConstants.baseUrl}/alert/patient/$patientId');
+    final uri = Uri.parse('${ApiConstants.baseUrl}/alerts/patient/$patientId');
 
     try {
       final response = await _client
@@ -52,7 +52,7 @@ class AlertApiService {
 
   /// Update an alert (e.g. to mark as acknowledged)
   Future<Alert> updateAlert(Alert alert) async {
-    final uri = Uri.parse('${ApiConstants.baseUrl}/alert');
+    final uri = Uri.parse('${ApiConstants.baseUrl}/alerts/update');
     
     try {
       final response = await _client

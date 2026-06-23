@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../core/responsive/responsive_utils.dart';
 import '../../core/constants/app_icons.dart';
 import '../../core/constants/app_strings.dart';
+import 'package:provider/provider.dart';
+import '../../providers/alert_provider.dart';
 
 class AdaptiveNav extends StatelessWidget {
   const AdaptiveNav({
@@ -28,9 +30,23 @@ class AdaptiveNav extends StatelessWidget {
             label: Text(AppStrings.patients),
           ),
           NavigationRailDestination(
-            icon: Icon(AppIcons.alerts),
-            selectedIcon: Icon(AppIcons.alertsActive),
-            label: Text(AppStrings.alerts),
+            icon: Consumer<AlertProvider>(
+              builder: (context, provider, _) {
+                if (provider.unreadCount > 0) {
+                  return Badge(label: Text('${provider.unreadCount}'), child: const Icon(AppIcons.alerts));
+                }
+                return const Icon(AppIcons.alerts);
+              },
+            ),
+            selectedIcon: Consumer<AlertProvider>(
+              builder: (context, provider, _) {
+                if (provider.unreadCount > 0) {
+                  return Badge(label: Text('${provider.unreadCount}'), child: const Icon(AppIcons.alertsActive));
+                }
+                return const Icon(AppIcons.alertsActive);
+              },
+            ),
+            label: const Text(AppStrings.alerts),
           ),
           NavigationRailDestination(
             icon: Icon(AppIcons.analytics),
@@ -56,8 +72,22 @@ class AdaptiveNav extends StatelessWidget {
           label: AppStrings.patients,
         ),
         NavigationDestination(
-          icon: Icon(AppIcons.alerts),
-          selectedIcon: Icon(AppIcons.alertsActive),
+          icon: Consumer<AlertProvider>(
+            builder: (context, provider, _) {
+              if (provider.unreadCount > 0) {
+                return Badge(label: Text('${provider.unreadCount}'), child: const Icon(AppIcons.alerts));
+              }
+              return const Icon(AppIcons.alerts);
+            },
+          ),
+          selectedIcon: Consumer<AlertProvider>(
+            builder: (context, provider, _) {
+              if (provider.unreadCount > 0) {
+                return Badge(label: Text('${provider.unreadCount}'), child: const Icon(AppIcons.alertsActive));
+              }
+              return const Icon(AppIcons.alertsActive);
+            },
+          ),
           label: AppStrings.alerts,
         ),
         NavigationDestination(
