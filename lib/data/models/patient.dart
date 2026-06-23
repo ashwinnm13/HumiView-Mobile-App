@@ -76,7 +76,7 @@ class Patient {
   /// `deviceId`, `status`. Fields not present in the backend get defaults.
   factory Patient.fromJson(Map<String, dynamic> json) {
     return Patient(
-      id: json['patientId']?.toString() ?? json['id']?.toString() ?? '',
+      id: json['id']?.toString() ?? json['patientId']?.toString() ?? '',
       name: json['patientName'] as String? ?? 'Unknown',
       photoUrl: '', // Not stored in backend yet
       roomNumber: json['roomNumber'] as String? ?? '',

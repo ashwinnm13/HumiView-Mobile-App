@@ -15,6 +15,7 @@ class Alert {
   final DateTime timestamp;
   final String? roomNumber;
   final bool isRead;
+  final String type;
 
   const Alert({
     required this.id,
@@ -26,6 +27,7 @@ class Alert {
     required this.timestamp,
     this.roomNumber,
     this.isRead = false,
+    this.type = 'General',
   });
 
   Alert copyWith({
@@ -42,6 +44,41 @@ class Alert {
       timestamp: timestamp,
       roomNumber: roomNumber,
       isRead: isRead ?? this.isRead,
+      type: type,
     );
+  }
+
+  factory Alert.fromJson(Map<String, dynamic> json) {
+    final sevStr = json['severity']?.toString().toLowerCase();
+    AlertSeverity sev = AlertSeverity.info;
+    if (sevStr == 'critical') sev = AlertSeverity.critical;
+    if (sevStr == 'warning') sev = AlertSeverity.warning;
+
+    final bool ack = json['acknowledged'] == true;
+
+    return Alert(
+      id: json['id']?.toString() ?? '',
+      patientId: json['patientId']?.toString() ?? '',
+      patientName: json['patientName']?.toString() ?? 'Unknown',
+      type: json['type']?.toString() ?? 'General',
+      message: json['message']?.toString() ?? '',
+      severity: sev,
+      status: ack ? AlertStatus.acknowledged : AlertStatus.open,
+      timestamp: json['timestamp'] != null ? DateTime.parse(json['timestamp']) : DateTime.now(),
+      roomNumber: json['roomNumber']?.toString(),
+      isRead: ack,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (id.isNotEmpty) 'id': int.tryParse(id) ?? id,
+      if (patientId.isNotEmpty) 'patientId': int.tryParse(patientId) ?? patientId,
+      'type': type,
+      'message': message,
+      'severity': severity.name,
+      'timestamp': timestamp.toIso8601String().split('Z').first,
+      'acknowledged': status == AlertStatus.acknowledged || status == AlertStatus.dismissed || isRead,
+    };
   }
 }

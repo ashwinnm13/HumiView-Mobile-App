@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../data/models/alert.dart';
-import '../data/mock/mock_alerts.dart';
+import '../services/alert_api_service.dart';
 
 class AlertProvider extends ChangeNotifier {
+  final AlertApiService _apiService = AlertApiService();
   List<Alert> _alerts = [];
   bool _isLoading = false;
 
@@ -22,35 +23,64 @@ class AlertProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    await Future.delayed(const Duration(milliseconds: 800));
-
-    // Sort by timestamp descending
-    _alerts = List.from(MockAlerts.alerts)
-      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    try {
+      final fetchedAlerts = await _apiService.getAllAlerts();
+      _alerts = List.from(fetchedAlerts)
+        ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    } catch (e) {
+      debugPrint('Failed to load alerts: $e');
+      _alerts = [];
+    }
 
     _isLoading = false;
     notifyListeners();
   }
 
-  void acknowledgeAlert(String id) {
+  /// Reload alerts from the backend
+  Future<void> refreshAlerts() async {
+    await _loadAlerts();
+  }
+
+  Future<void> acknowledgeAlert(String id) async {
     final index = _alerts.indexWhere((a) => a.id == id);
     if (index != -1) {
-      _alerts[index] = _alerts[index].copyWith(
+      // Optimistic update
+      final original = _alerts[index];
+      _alerts[index] = original.copyWith(
         status: AlertStatus.acknowledged,
         isRead: true,
       );
       notifyListeners();
+
+      try {
+        await _apiService.updateAlert(_alerts[index]);
+      } catch (e) {
+        // Revert on failure
+        _alerts[index] = original;
+        notifyListeners();
+        debugPrint('Failed to acknowledge alert: $e');
+      }
     }
   }
 
-  void dismissAlert(String id) {
+  Future<void> dismissAlert(String id) async {
     final index = _alerts.indexWhere((a) => a.id == id);
     if (index != -1) {
-      _alerts[index] = _alerts[index].copyWith(
+      // Optimistic update
+      final original = _alerts[index];
+      _alerts[index] = original.copyWith(
         status: AlertStatus.dismissed,
         isRead: true,
       );
       notifyListeners();
+
+      try {
+        await _apiService.updateAlert(_alerts[index]);
+      } catch (e) {
+        _alerts[index] = original;
+        notifyListeners();
+        debugPrint('Failed to dismiss alert: $e');
+      }
     }
   }
 

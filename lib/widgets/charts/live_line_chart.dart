@@ -35,6 +35,20 @@ class LiveLineChart extends StatelessWidget {
       return FlSpot(entry.key.toDouble(), valueMapper(entry.value));
     }).toList();
 
+    // Dynamically adjust bounds so real data isn't clipped
+    final dataMinY = spots.map((s) => s.y).reduce((a, b) => a < b ? a : b);
+    final dataMaxY = spots.map((s) => s.y).reduce((a, b) => a > b ? a : b);
+    
+    double actualMinY = dataMinY < minY ? dataMinY - (dataMinY * 0.1) : minY;
+    double actualMaxY = dataMaxY > maxY ? dataMaxY + (dataMaxY * 0.1) : maxY;
+    if (actualMinY == actualMaxY) {
+      actualMinY -= 5;
+      actualMaxY += 5;
+    }
+    
+    final intervalY = (actualMaxY - actualMinY) / 4;
+    final safeIntervalY = intervalY <= 0 ? 1.0 : intervalY;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -140,7 +154,7 @@ class LiveLineChart extends StatelessWidget {
               gridData: FlGridData(
                 show: true,
                 drawVerticalLine: false,
-                horizontalInterval: (maxY - minY) / 4,
+                horizontalInterval: safeIntervalY,
                 getDrawingHorizontalLine: (value) => FlLine(
                   color: AppColors.divider,
                   strokeWidth: 1,
@@ -176,7 +190,7 @@ class LiveLineChart extends StatelessWidget {
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
-                    interval: (maxY - minY) / 4,
+                    interval: safeIntervalY,
                     reservedSize: 40,
                     getTitlesWidget: (value, meta) {
                       return Text(
@@ -189,9 +203,9 @@ class LiveLineChart extends StatelessWidget {
               ),
               borderData: FlBorderData(show: false),
               minX: 0,
-              maxX: (data.length - 1).toDouble(),
-              minY: minY,
-              maxY: maxY,
+              maxX: data.length > 1 ? (data.length - 1).toDouble() : 1.0,
+              minY: actualMinY,
+              maxY: actualMaxY,
               lineBarsData: [
                 LineChartBarData(
                   spots: spots,
@@ -199,8 +213,8 @@ class LiveLineChart extends StatelessWidget {
                   color: color,
                   barWidth: 3,
                   isStrokeCapRound: true,
-                  dotData: const FlDotData(
-                    show: false,
+                  dotData: FlDotData(
+                    show: data.length == 1, // Show dot if there is only 1 point!
                   ),
                   belowBarData: BarAreaData(
                     show: true,

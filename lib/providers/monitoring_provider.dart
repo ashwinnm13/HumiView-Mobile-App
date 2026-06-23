@@ -59,9 +59,9 @@ class MonitoringProvider extends ChangeNotifier {
 
     notifyListeners();
 
-    // Start live updates (every 2 seconds)
+    // Start live updates (polling every 3 seconds)
     if (_currentPatient!.connectionStatus != ConnectionStatus.offline) {
-      _timer = Timer.periodic(const Duration(seconds: 2), (_) {
+      _timer = Timer.periodic(const Duration(seconds: 3), (_) {
         if (!_isPaused) {
           _fetchLatestReading();
         }
