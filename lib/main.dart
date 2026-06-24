@@ -15,8 +15,17 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => PatientProvider()),
-        ChangeNotifierProvider(create: (_) => AlertProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProxyProvider<PatientProvider, AlertProvider>(
+          create: (context) => AlertProvider(context.read<PatientProvider>()),
+          update: (context, patientProvider, previous) {
+            if (previous != null) {
+              previous.updatePatientProvider(patientProvider);
+              return previous;
+            }
+            return AlertProvider(patientProvider);
+          },
+        ),
         ChangeNotifierProxyProvider<PatientProvider, MonitoringProvider>(
           create: (context) => MonitoringProvider(context.read<PatientProvider>()),
           update: (context, patientProvider, previous) =>

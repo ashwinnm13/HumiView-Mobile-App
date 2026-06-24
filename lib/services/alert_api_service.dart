@@ -1,16 +1,34 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../core/constants/api_constants.dart';
 import '../data/models/alert.dart';
 
+/// Service layer for communicating with the Spring Boot Alert REST API.
+///
+/// Mirrors [SensorApiService] conventions. All endpoints are derived from
+/// [ApiConstants.alertsEndpoint] so a future Firestore migration only
+/// requires swapping this class (or injecting a different implementation).
 class AlertApiService {
   final http.Client _client;
 
   AlertApiService({http.Client? client}) : _client = client ?? http.Client();
 
-  /// Fetch all alerts across all patients
+  // ── Helpers ──────────────────────────────────────────────────────────
+
+  Uri _uri(String path) =>
+      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.alertsEndpoint}$path');
+
+  Map<String, String> get _jsonHeaders => {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+
+  // ── GET all alerts ───────────────────────────────────────────────────
+
+  /// Fetch every alert across all patients.
   Future<List<Alert>> getAllAlerts() async {
-    final uri = Uri.parse('${ApiConstants.baseUrl}/alerts');
+    final uri = _uri('');
 
     try {
       final response = await _client
@@ -20,18 +38,26 @@ class AlertApiService {
       if (response.statusCode == 200) {
         if (response.body.trim().isEmpty) return [];
         final List<dynamic> jsonList = jsonDecode(response.body);
-        return jsonList.map((json) => Alert.fromJson(json as Map<String, dynamic>)).toList();
+        return jsonList
+            .map((json) => Alert.fromJson(json as Map<String, dynamic>))
+            .toList();
       } else {
-        throw Exception('Failed to load alerts: ${response.statusCode}');
+        throw HttpException(
+          'Failed to load alerts: ${response.statusCode} ${response.reasonPhrase}',
+        );
       }
-    } catch (e) {
-      throw Exception('Network error while fetching alerts: $e');
+    } on SocketException {
+      throw const SocketException(
+        'Could not connect to the server. Is the backend running?',
+      );
     }
   }
 
-  /// Fetch alerts for a specific patient
+  // ── GET alerts for a patient ─────────────────────────────────────────
+
+  /// Fetch alerts scoped to a single patient.
   Future<List<Alert>> getAlertsByPatientId(String patientId) async {
-    final uri = Uri.parse('${ApiConstants.baseUrl}/alerts/patient/$patientId');
+    final uri = _uri('/patient/$patientId');
 
     try {
       final response = await _client
@@ -41,35 +67,72 @@ class AlertApiService {
       if (response.statusCode == 200) {
         if (response.body.trim().isEmpty) return [];
         final List<dynamic> jsonList = jsonDecode(response.body);
-        return jsonList.map((json) => Alert.fromJson(json as Map<String, dynamic>)).toList();
+        return jsonList
+            .map((json) => Alert.fromJson(json as Map<String, dynamic>))
+            .toList();
       } else {
-        throw Exception('Failed to load patient alerts: ${response.statusCode}');
+        throw HttpException(
+          'Failed to load patient alerts: ${response.statusCode} ${response.reasonPhrase}',
+        );
       }
-    } catch (e) {
-      throw Exception('Network error while fetching patient alerts: $e');
+    } on SocketException {
+      throw const SocketException(
+        'Could not connect to the server. Is the backend running?',
+      );
     }
   }
 
-  /// Update an alert (e.g. to mark as acknowledged)
+  // ── PUT update alert ─────────────────────────────────────────────────
+
+  /// Persist an alert mutation (acknowledge / dismiss).
   Future<Alert> updateAlert(Alert alert) async {
-    final uri = Uri.parse('${ApiConstants.baseUrl}/alerts/update');
-    
+    final uri = _uri('/update');
+
     try {
       final response = await _client
-          .put(
-            uri,
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode(alert.toJson()),
-          )
+          .put(uri, headers: _jsonHeaders, body: jsonEncode(alert.toJson()))
           .timeout(ApiConstants.connectionTimeout);
 
       if (response.statusCode == 200) {
-        return Alert.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+        return Alert.fromJson(
+            jsonDecode(response.body) as Map<String, dynamic>);
       } else {
-        throw Exception('Failed to update alert: ${response.statusCode}');
+        throw HttpException(
+          'Failed to update alert: ${response.statusCode} ${response.reasonPhrase}',
+        );
       }
-    } catch (e) {
-      throw Exception('Network error while updating alert: $e');
+    } on SocketException {
+      throw const SocketException(
+        'Could not connect to the server. Is the backend running?',
+      );
     }
+  }
+
+  // ── DELETE alert ─────────────────────────────────────────────────────
+
+  /// Delete a dismissed alert by its ID.
+  Future<void> deleteAlert(String alertId) async {
+    final uri = _uri('/$alertId');
+
+    try {
+      final response = await _client
+          .delete(uri, headers: {'Accept': 'application/json'})
+          .timeout(ApiConstants.connectionTimeout);
+
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw HttpException(
+          'Failed to delete alert: ${response.statusCode} ${response.reasonPhrase}',
+        );
+      }
+    } on SocketException {
+      throw const SocketException(
+        'Could not connect to the server. Is the backend running?',
+      );
+    }
+  }
+
+  /// Disposes the underlying HTTP client.
+  void dispose() {
+    _client.close();
   }
 }

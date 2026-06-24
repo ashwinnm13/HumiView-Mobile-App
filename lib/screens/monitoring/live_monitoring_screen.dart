@@ -12,6 +12,7 @@ import '../../widgets/patient/patient_header.dart';
 import '../../widgets/patient/patient_metrics.dart';
 import '../../widgets/charts/live_line_chart.dart';
 import '../../widgets/common/app_card.dart';
+import '../../widgets/common/pulsing_status_indicator.dart';
 
 class LiveMonitoringScreen extends StatefulWidget {
   const LiveMonitoringScreen({super.key, required this.patientId});
@@ -91,6 +92,8 @@ class _LiveMonitoringScreenState extends State<LiveMonitoringScreen> {
           PatientHeader(patient: provider.currentPatient!),
           const SizedBox(height: 24),
           PatientMetrics(patient: provider.currentPatient!),
+          const SizedBox(height: 16),
+          _buildHeaterStatusCard(provider),
           const SizedBox(height: 24),
           _buildChartsSection(provider),
         ],
@@ -112,6 +115,8 @@ class _LiveMonitoringScreenState extends State<LiveMonitoringScreen> {
                 PatientHeader(patient: provider.currentPatient!),
                 const SizedBox(height: 24),
                 PatientMetrics(patient: provider.currentPatient!),
+                const SizedBox(height: 16),
+                _buildHeaterStatusCard(provider),
               ],
             ),
           ),
@@ -132,8 +137,11 @@ class _LiveMonitoringScreenState extends State<LiveMonitoringScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 12,
           children: [
             Text(AppStrings.liveMonitoring, style: AppTypography.headlineSmall),
             _buildTimeRangeSelector(provider),
@@ -203,6 +211,35 @@ class _LiveMonitoringScreenState extends State<LiveMonitoringScreen> {
       style: SegmentedButton.styleFrom(
         visualDensity: VisualDensity.compact,
         textStyle: AppTypography.labelMedium,
+      ),
+    );
+  }
+
+  Widget _buildHeaterStatusCard(MonitoringProvider provider) {
+    final reading = provider.currentPatient?.latestReading;
+    if (reading == null) return const SizedBox.shrink();
+
+    final isOn = reading.heaterStatus == 1;
+
+    return AppCard(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          PulsingStatusIndicator(
+            isActive: isOn,
+            activeColor: AppColors.success,
+            inactiveColor: AppColors.textTertiary,
+            size: 16.0,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            isOn ? 'Heater ON' : 'Heater OFF',
+            style: AppTypography.titleMedium.copyWith(
+              fontWeight: FontWeight.w600,
+              color: isOn ? AppColors.success : AppColors.textSecondary,
+            ),
+          ),
+        ],
       ),
     );
   }

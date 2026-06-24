@@ -25,10 +25,12 @@ class _AlertCenterScreenState extends State<AlertCenterScreen> {
         title: const Text(AppStrings.alertCenter),
         centerTitle: false,
         actions: [
-          IconButton(
-            icon: const Icon(AppIcons.refresh),
-            onPressed: () {},
-            tooltip: 'Refresh',
+          Consumer<AlertProvider>(
+            builder: (context, provider, _) => IconButton(
+              icon: const Icon(AppIcons.refresh),
+              onPressed: provider.refreshAlerts,
+              tooltip: 'Refresh',
+            ),
           ),
         ],
       ),
@@ -74,6 +76,28 @@ class _AlertCenterScreenState extends State<AlertCenterScreen> {
       builder: (context, provider, _) {
         if (provider.isLoading) {
           return const Center(child: CircularProgressIndicator());
+        }
+
+        if (provider.hasError && provider.alerts.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.cloud_off, size: 48, color: AppColors.textSecondary),
+                const SizedBox(height: 12),
+                Text(
+                  'Unable to load alerts',
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  onPressed: provider.refreshAlerts,
+                  icon: const Icon(AppIcons.refresh),
+                  label: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
         }
 
         var alerts = provider.alerts;
