@@ -64,6 +64,9 @@ class PatientProvider extends ChangeNotifier {
   /// Adds a new patient by POSTing to the Spring Boot backend.
   Future<bool> addPatient({
     required String name,
+    int? age,
+    DateTime? admissionDate,
+    String imageUrl = '',
     required String roomNumber,
     required String deviceId,
   }) async {
@@ -71,7 +74,9 @@ class PatientProvider extends ChangeNotifier {
       final newPatient = Patient(
         id: '', // Backend will auto-generate
         name: name,
-        photoUrl: '',
+        imageUrl: imageUrl,
+        age: age,
+        admissionDate: admissionDate,
         roomNumber: roomNumber,
         deviceId: deviceId,
         connectionType: ConnectionType.wifi,

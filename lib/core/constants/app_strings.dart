@@ -52,12 +52,22 @@ class AppStrings {
   static const String absoluteHumidity = 'Absolute Humidity';
   static const String signalStrength = 'Signal';
   static const String heaterStatus = 'Heater';
+  static const String history = 'History';
 
   // ─── Units ───
   static const String celsius = '°C';
   static const String percent = '%';
   static const String gPerM3 = 'g/m³';
   static const String dBm = 'dBm';
+
+  // ─── Patient History ───
+  static const String patientHistory = 'Patient History';
+  static const String avgTemperature = 'Avg Temperature';
+  static const String avgRelativeHumidity = 'Avg Relative Humidity';
+  static const String avgAbsoluteHumidity = 'Avg Absolute Humidity';
+  static const String heaterActivity = 'Heater Activity';
+  static const String alertHistory = 'Alert History';
+  static const String noHistoryData = 'No history data available for this time range.';
 
   // ─── Monitoring ───
   static const String liveMonitoring = 'Live Monitoring';

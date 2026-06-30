@@ -13,6 +13,10 @@ import '../../widgets/patient/patient_metrics.dart';
 import '../../widgets/charts/live_line_chart.dart';
 import '../../widgets/common/app_card.dart';
 import '../../widgets/common/pulsing_status_indicator.dart';
+import '../../providers/alert_provider.dart';
+import '../../data/models/alert.dart';
+import '../../data/models/patient.dart';
+import 'package:intl/intl.dart';
 
 class LiveMonitoringScreen extends StatefulWidget {
   const LiveMonitoringScreen({super.key, required this.patientId});
@@ -60,48 +64,66 @@ class _LiveMonitoringScreenState extends State<LiveMonitoringScreen> {
             },
           ),
           IconButton(
+            icon: const Icon(AppIcons.history),
+            onPressed: () => context.push('/history/${widget.patientId}'),
+            tooltip: AppStrings.patientHistory,
+          ),
+          IconButton(
             icon: const Icon(AppIcons.heater),
             onPressed: () => context.push('/heater/${widget.patientId}'),
             tooltip: AppStrings.heaterControl,
           ),
         ],
       ),
-      body: Consumer<MonitoringProvider>(
-        builder: (context, provider, _) {
-          final patient = provider.currentPatient;
-          
-          if (patient == null) {
+      body: Selector<MonitoringProvider, bool>(
+        selector: (context, provider) => provider.currentPatient == null,
+        builder: (context, isNull, _) {
+          if (isNull) {
             return const Center(child: CircularProgressIndicator());
           }
 
           return ResponsiveLayout(
-            mobile: (context, _) => _buildMobileLayout(context, provider),
-            tablet: (context, _) => _buildTabletLayout(context, provider),
+            mobile: (context, _) => _buildMobileLayout(context),
+            tablet: (context, _) => _buildTabletLayout(context),
           );
         },
       ),
     );
   }
 
-  Widget _buildMobileLayout(BuildContext context, MonitoringProvider provider) {
+  Widget _buildMobileLayout(BuildContext context) {
     return SingleChildScrollView(
       padding: EdgeInsets.all(context.screenPaddingH),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          PatientHeader(patient: provider.currentPatient!),
+          Selector<MonitoringProvider, Patient?>(
+            selector: (context, provider) => provider.currentPatient,
+            shouldRebuild: (prev, next) => prev?.id != next?.id,
+            builder: (context, patient, _) => patient != null ? PatientHeader(patient: patient) : const SizedBox(),
+          ),
           const SizedBox(height: 24),
-          PatientMetrics(patient: provider.currentPatient!),
+          Consumer<MonitoringProvider>(
+            builder: (context, provider, _) => provider.currentPatient != null 
+                ? PatientMetrics(patient: provider.currentPatient!) 
+                : const SizedBox(),
+          ),
           const SizedBox(height: 16),
-          _buildHeaterStatusCard(provider),
+          Consumer<MonitoringProvider>(
+            builder: (context, provider, _) => _buildHeaterStatusCard(provider),
+          ),
           const SizedBox(height: 24),
-          _buildChartsSection(provider),
+          Consumer<MonitoringProvider>(
+            builder: (context, provider, _) => _buildChartsSection(provider),
+          ),
+          const SizedBox(height: 24),
+          _buildActiveAlertsSection(context, widget.patientId),
         ],
       ),
     );
   }
 
-  Widget _buildTabletLayout(BuildContext context, MonitoringProvider provider) {
+  Widget _buildTabletLayout(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -112,11 +134,21 @@ class _LiveMonitoringScreenState extends State<LiveMonitoringScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                PatientHeader(patient: provider.currentPatient!),
+                Selector<MonitoringProvider, Patient?>(
+                  selector: (context, provider) => provider.currentPatient,
+                  shouldRebuild: (prev, next) => prev?.id != next?.id,
+                  builder: (context, patient, _) => patient != null ? PatientHeader(patient: patient) : const SizedBox(),
+                ),
                 const SizedBox(height: 24),
-                PatientMetrics(patient: provider.currentPatient!),
+                Consumer<MonitoringProvider>(
+                  builder: (context, provider, _) => provider.currentPatient != null 
+                      ? PatientMetrics(patient: provider.currentPatient!) 
+                      : const SizedBox(),
+                ),
                 const SizedBox(height: 16),
-                _buildHeaterStatusCard(provider),
+                Consumer<MonitoringProvider>(
+                  builder: (context, provider, _) => _buildHeaterStatusCard(provider),
+                ),
               ],
             ),
           ),
@@ -126,7 +158,16 @@ class _LiveMonitoringScreenState extends State<LiveMonitoringScreen> {
           flex: 6,
           child: SingleChildScrollView(
             padding: EdgeInsets.all(context.screenPaddingH),
-            child: _buildChartsSection(provider),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Consumer<MonitoringProvider>(
+                  builder: (context, provider, _) => _buildChartsSection(provider),
+                ),
+                const SizedBox(height: 24),
+                _buildActiveAlertsSection(context, widget.patientId),
+              ],
+            ),
           ),
         ),
       ],
@@ -149,7 +190,7 @@ class _LiveMonitoringScreenState extends State<LiveMonitoringScreen> {
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 250,
+          height: 350,
           child: AppCard(
             margin: EdgeInsets.zero,
             child: LiveLineChart(
@@ -157,15 +198,15 @@ class _LiveMonitoringScreenState extends State<LiveMonitoringScreen> {
               data: provider.liveData,
               unit: AppStrings.celsius,
               color: AppColors.critical,
-              minY: 34.0,
-              maxY: 42.0,
+              minY: 20.0,
+              maxY: 50.0,
               valueMapper: (r) => r.temperature,
             ),
           ),
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 250,
+          height: 350,
           child: AppCard(
             margin: EdgeInsets.zero,
             child: LiveLineChart(
@@ -181,7 +222,7 @@ class _LiveMonitoringScreenState extends State<LiveMonitoringScreen> {
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 250,
+          height: 350,
           child: AppCard(
             margin: EdgeInsets.zero,
             child: LiveLineChart(
@@ -240,6 +281,94 @@ class _LiveMonitoringScreenState extends State<LiveMonitoringScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildActiveAlertsSection(BuildContext context, String patientId) {
+    return Consumer<AlertProvider>(
+      builder: (context, alertProvider, _) {
+        final patientAlerts = alertProvider.alerts
+            .where((a) => a.patientId == patientId && a.status == AlertStatus.open)
+            .toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Active Alerts', style: AppTypography.titleLarge),
+            const SizedBox(height: 12),
+            if (alertProvider.hasError && patientAlerts.isEmpty)
+              AppCard(
+                padding: const EdgeInsets.all(24),
+                child: Center(
+                  child: Column(
+                    children: [
+                      const Icon(Icons.wifi_off, size: 48, color: AppColors.offline),
+                      const SizedBox(height: 16),
+                      Text('Connection Error', style: AppTypography.titleMedium),
+                      const SizedBox(height: 4),
+                      Text(alertProvider.errorMessage ?? 'Unable to reach backend.', style: AppTypography.bodyMedium, textAlign: TextAlign.center),
+                    ],
+                  ),
+                ),
+              )
+            else if (patientAlerts.isEmpty)
+              AppCard(
+                padding: const EdgeInsets.all(24),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(Icons.check_circle_outline, size: 48, color: AppColors.success),
+                      const SizedBox(height: 16),
+                      Text('No active alerts', style: AppTypography.titleMedium),
+                      const SizedBox(height: 4),
+                      Text('Patient is in stable condition.', style: AppTypography.bodyMedium),
+                    ],
+                  ),
+                ),
+              )
+            else
+              ...patientAlerts.map((alert) => _buildAlertCard(context, alertProvider, alert)),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildAlertCard(BuildContext context, AlertProvider provider, Alert alert) {
+    IconData icon;
+    Color color;
+
+    switch (alert.severity) {
+      case AlertSeverity.critical:
+        icon = Icons.error_outline;
+        color = AppColors.critical;
+        break;
+      case AlertSeverity.warning:
+        icon = Icons.warning_amber_rounded;
+        color = AppColors.warning;
+        break;
+      case AlertSeverity.info:
+      default:
+        icon = Icons.info_outline;
+        color = AppColors.primary;
+        break;
+    }
+
+    final timeStr = DateFormat('hh:mm a').format(alert.timestamp);
+
+    return AppCard(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        leading: Icon(icon, color: color, size: 32),
+        title: Text(alert.message, style: AppTypography.titleMedium),
+        subtitle: Text('Reported at $timeStr', style: AppTypography.bodySmall),
+        trailing: IconButton(
+          icon: const Icon(Icons.check_circle_outline),
+          color: AppColors.success,
+          tooltip: 'Acknowledge',
+          onPressed: () => provider.acknowledgeAlert(alert.id),
+        ),
       ),
     );
   }

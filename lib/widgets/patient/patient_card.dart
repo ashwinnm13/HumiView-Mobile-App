@@ -37,8 +37,8 @@ class PatientCard extends StatelessWidget {
               CircleAvatar(
                 radius: 24,
                 backgroundColor: AppColors.primarySurface,
-                backgroundImage: patient.photoUrl.isNotEmpty ? NetworkImage(patient.photoUrl) : null,
-                child: patient.photoUrl.isEmpty ? Text(
+                backgroundImage: patient.imageUrl.isNotEmpty ? NetworkImage(patient.imageUrl) : null,
+                child: patient.imageUrl.isEmpty ? Text(
                   patient.initials,
                   style: AppTypography.titleMedium.copyWith(color: AppColors.primary),
                 ) : null,
@@ -60,6 +60,24 @@ class PatientCard extends StatelessWidget {
                       spacing: 8,
                       runSpacing: 4,
                       children: [
+                        if (patient.age != null)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.cake_outlined, size: 14, color: AppColors.textSecondary),
+                              const SizedBox(width: 4),
+                              Text('${patient.age} yrs', style: AppTypography.caption),
+                            ],
+                          ),
+                        if (patient.admissionDate != null)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textSecondary),
+                              const SizedBox(width: 4),
+                              Text('${patient.admissionDate!.day.toString().padLeft(2, '0')}/${patient.admissionDate!.month.toString().padLeft(2, '0')}/${patient.admissionDate!.year}', style: AppTypography.caption),
+                            ],
+                          ),
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [

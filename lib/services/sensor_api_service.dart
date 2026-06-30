@@ -63,6 +63,31 @@ class SensorApiService {
     }
   }
 
+  /// Fetches the historical sensor readings for a specific patient.
+  Future<List<SensorReading>> getPatientHistory(String patientId) async {
+    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.sensorEndpoint}/history/$patientId');
+
+    try {
+      final response = await _client
+          .get(uri, headers: {'Accept': 'application/json'})
+          .timeout(ApiConstants.connectionTimeout);
+
+      if (response.statusCode == 200) {
+        if (response.body.trim().isEmpty) return [];
+        final List<dynamic> jsonList = jsonDecode(response.body) as List<dynamic>;
+        return jsonList
+            .map((json) => SensorReading.fromJson(json as Map<String, dynamic>))
+            .toList();
+      } else {
+        throw HttpException(
+          'Failed to load patient history: ${response.statusCode} ${response.reasonPhrase}',
+        );
+      }
+    } on SocketException {
+      throw const SocketException('Could not connect to the server. Is the backend running?');
+    }
+  }
+
   /// Saves a new sensor reading via `POST /sensor`.
   Future<SensorReading> saveReading(SensorReading reading) async {
     final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.sensorEndpoint}');

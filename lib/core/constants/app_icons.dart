@@ -77,9 +77,11 @@ class AppIcons {
   static const IconData aboutIcon = Icons.info_outline;
   static const IconData shield = Icons.shield_outlined;
 
+
   // ─── Misc ───
   static const IconData camera = Icons.camera_alt_outlined;
   static const IconData notification = Icons.notifications_outlined;
   static const IconData time = Icons.access_time;
   static const IconData calendar = Icons.calendar_today_outlined;
+  static const IconData history = Icons.history;
 }

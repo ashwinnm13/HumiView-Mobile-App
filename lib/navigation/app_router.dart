@@ -11,6 +11,7 @@ import '../screens/alerts/notifications_screen.dart';
 import '../screens/analytics/analytics_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/patient/add_patient_screen.dart';
+import '../screens/patient/patient_history_screen.dart';
 import '../providers/auth_provider.dart';
 
 class AppRouter {
@@ -108,6 +109,14 @@ class AppRouter {
           builder: (context, state) {
             final id = state.pathParameters['id']!;
             return HeaterControlScreen(patientId: id);
+          },
+        ),
+        GoRoute(
+          path: '/history/:id',
+          parentNavigatorKey: rootNavigatorKey,
+          builder: (context, state) {
+            final id = state.pathParameters['id']!;
+            return PatientHistoryScreen(patientId: id);
           },
         ),
         GoRoute(

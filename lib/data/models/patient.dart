@@ -14,7 +14,9 @@ enum ConnectionType { wifi, usb }
 class Patient {
   final String id;
   final String name;
-  final String photoUrl;
+  final String imageUrl;
+  final int? age;
+  final DateTime? admissionDate;
   final String roomNumber;
   final String deviceId;
   final ConnectionType connectionType;
@@ -28,7 +30,9 @@ class Patient {
   const Patient({
     required this.id,
     required this.name,
-    required this.photoUrl,
+    required this.imageUrl,
+    this.age,
+    this.admissionDate,
     required this.roomNumber,
     required this.deviceId,
     required this.connectionType,
@@ -43,7 +47,9 @@ class Patient {
   Patient copyWith({
     String? id,
     String? name,
-    String? photoUrl,
+    String? imageUrl,
+    int? age,
+    DateTime? admissionDate,
     String? roomNumber,
     String? deviceId,
     ConnectionType? connectionType,
@@ -57,7 +63,9 @@ class Patient {
     return Patient(
       id: id ?? this.id,
       name: name ?? this.name,
-      photoUrl: photoUrl ?? this.photoUrl,
+      imageUrl: imageUrl ?? this.imageUrl,
+      age: age ?? this.age,
+      admissionDate: admissionDate ?? this.admissionDate,
       roomNumber: roomNumber ?? this.roomNumber,
       deviceId: deviceId ?? this.deviceId,
       connectionType: connectionType ?? this.connectionType,
@@ -78,7 +86,9 @@ class Patient {
     return Patient(
       id: json['id']?.toString() ?? json['patientId']?.toString() ?? '',
       name: json['patientName'] as String? ?? 'Unknown',
-      photoUrl: '', // Not stored in backend yet
+      imageUrl: json['imageUrl'] as String? ?? '',
+      age: json['age'] as int?,
+      admissionDate: json['admissionDate'] != null ? DateTime.tryParse(json['admissionDate'] as String) : null,
       roomNumber: json['roomNumber'] as String? ?? '',
       deviceId: json['deviceId'] as String? ?? '',
       connectionType: ConnectionType.wifi,
@@ -92,6 +102,10 @@ class Patient {
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{
       'patientName': name,
+      'imageUrl': imageUrl,
+      if (age != null) 'age': age,
+      if (admissionDate != null)
+        'admissionDate': "${admissionDate!.year.toString().padLeft(4, '0')}-${admissionDate!.month.toString().padLeft(2, '0')}-${admissionDate!.day.toString().padLeft(2, '0')}",
       'roomNumber': roomNumber,
       'deviceId': deviceId,
       'status': status.name,

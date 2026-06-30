@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
@@ -16,13 +18,17 @@ class AddPatientScreen extends StatefulWidget {
 class _AddPatientScreenState extends State<AddPatientScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _ageController = TextEditingController();
   final _wardController = TextEditingController();
   final _deviceController = TextEditingController();
+  DateTime? _admissionDate;
+  String _imageUrl = '';
   bool _isSubmitting = false;
   
   @override
   void dispose() {
     _nameController.dispose();
+    _ageController.dispose();
     _wardController.dispose();
     _deviceController.dispose();
     super.dispose();
@@ -36,6 +42,9 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
     final provider = context.read<PatientProvider>();
     final success = await provider.addPatient(
       name: _nameController.text.trim(),
+      age: int.tryParse(_ageController.text.trim()),
+      admissionDate: _admissionDate,
+      imageUrl: _imageUrl,
       roomNumber: _wardController.text.trim(),
       deviceId: _deviceController.text.trim(),
     );
@@ -81,7 +90,8 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                     CircleAvatar(
                       radius: 50,
                       backgroundColor: AppColors.primarySurface,
-                      child: const Icon(Icons.person, size: 50, color: AppColors.primary),
+                      backgroundImage: _imageUrl.isNotEmpty ? FileImage(File(_imageUrl)) : null,
+                      child: _imageUrl.isEmpty ? const Icon(Icons.person, size: 50, color: AppColors.primary) : null,
                     ),
                     Positioned(
                       bottom: 0,
@@ -94,11 +104,14 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                         ),
                         child: IconButton(
                           icon: const Icon(Icons.camera_alt, size: 20, color: Colors.white),
-                          onPressed: () {
-                            // Mock image picker
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Image picker mocked')),
-                            );
+                          onPressed: () async {
+                            final picker = ImagePicker();
+                            final image = await picker.pickImage(source: ImageSource.gallery);
+                            if (image != null) {
+                              setState(() {
+                                _imageUrl = image.path;
+                              });
+                            }
                           },
                         ),
                       ),
@@ -114,6 +127,43 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                   prefixIcon: Icon(Icons.person_outline),
                 ),
                 validator: (value) => value?.isEmpty ?? true ? 'Please enter a name' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _ageController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Age',
+                  prefixIcon: Icon(Icons.cake_outlined),
+                ),
+              ),
+              const SizedBox(height: 16),
+              InkWell(
+                onTap: () async {
+                  final date = await showDatePicker(
+                    context: context,
+                    initialDate: _admissionDate ?? DateTime.now(),
+                    firstDate: DateTime(1900),
+                    lastDate: DateTime.now().add(const Duration(days: 365)),
+                  );
+                  if (date != null) {
+                    setState(() => _admissionDate = date);
+                  }
+                },
+                child: InputDecorator(
+                  decoration: const InputDecoration(
+                    labelText: 'Admission Date',
+                    prefixIcon: Icon(Icons.calendar_today_outlined),
+                  ),
+                  child: Text(
+                    _admissionDate != null
+                        ? '${_admissionDate!.day.toString().padLeft(2, '0')}/${_admissionDate!.month.toString().padLeft(2, '0')}/${_admissionDate!.year}'
+                        : 'Select Date',
+                    style: TextStyle(
+                      color: _admissionDate != null ? null : Theme.of(context).hintColor,
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
               TextFormField(

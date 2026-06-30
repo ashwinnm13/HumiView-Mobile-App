@@ -35,8 +35,7 @@ class MonitoringProvider extends ChangeNotifier {
 
     // Fetch real historical data from backend
     try {
-      final allReadings = await _sensorApiService.getAllReadings();
-      final patientReadings = allReadings.where((r) => r.patientId == patientId).toList();
+      final patientReadings = await _sensorApiService.getPatientHistory(patientId);
       patientReadings.sort((a, b) => a.timestamp.compareTo(b.timestamp));
       
       if (patientReadings.isNotEmpty) {
@@ -60,13 +59,11 @@ class MonitoringProvider extends ChangeNotifier {
     notifyListeners();
 
     // Start live updates (polling every 3 seconds)
-    if (_currentPatient!.connectionStatus != ConnectionStatus.offline) {
-      _timer = Timer.periodic(const Duration(seconds: 3), (_) {
-        if (!_isPaused) {
-          _fetchLatestReading();
-        }
-      });
-    }
+    _timer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (!_isPaused) {
+        _fetchLatestReading();
+      }
+    });
   }
 
   void stopMonitoring() {
