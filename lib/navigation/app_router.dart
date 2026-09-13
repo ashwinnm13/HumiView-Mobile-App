@@ -12,6 +12,7 @@ import '../screens/analytics/analytics_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/patient/add_patient_screen.dart';
 import '../screens/patient/patient_history_screen.dart';
+import '../data/models/patient.dart';
 import '../providers/auth_provider.dart';
 
 class AppRouter {
@@ -127,7 +128,13 @@ class AppRouter {
         GoRoute(
           path: '/add-patient',
           parentNavigatorKey: rootNavigatorKey,
-          builder: (context, state) => const AddPatientScreen(),
+          builder: (context, state) {
+            final patient = state.extra;
+            if (patient != null && patient is Patient) {
+              return AddPatientScreen(patient: patient);
+            }
+            return const AddPatientScreen();
+          },
         ),
       ],
     );

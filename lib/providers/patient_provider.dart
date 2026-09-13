@@ -96,6 +96,43 @@ class PatientProvider extends ChangeNotifier {
     }
   }
 
+  /// Updates an existing patient.
+  Future<bool> updatePatientInfo({
+    required String id,
+    required String name,
+    int? age,
+    DateTime? admissionDate,
+    String imageUrl = '',
+    required String roomNumber,
+    required String deviceId,
+  }) async {
+    try {
+      final existingPatient = _allPatients.firstWhere((p) => p.id == id);
+      final updatedPatientObj = existingPatient.copyWith(
+        name: name,
+        age: age,
+        admissionDate: admissionDate,
+        imageUrl: imageUrl,
+        roomNumber: roomNumber,
+        deviceId: deviceId,
+      );
+
+      final savedPatient = await _apiService.updatePatient(updatedPatientObj);
+      
+      final index = _allPatients.indexWhere((p) => p.id == id);
+      if (index != -1) {
+        _allPatients[index] = savedPatient;
+      }
+      
+      _applyFilters();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
   void setSearchQuery(String query) {
     _searchQuery = query;
     _applyFilters();

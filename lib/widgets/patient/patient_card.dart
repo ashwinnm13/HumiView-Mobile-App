@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_shadows.dart';
@@ -37,7 +38,11 @@ class PatientCard extends StatelessWidget {
               CircleAvatar(
                 radius: 24,
                 backgroundColor: AppColors.primarySurface,
-                backgroundImage: patient.imageUrl.isNotEmpty ? NetworkImage(patient.imageUrl) : null,
+                backgroundImage: patient.imageUrl.isNotEmpty 
+                    ? (patient.imageUrl.startsWith('http') 
+                        ? NetworkImage(patient.imageUrl) as ImageProvider 
+                        : FileImage(File(patient.imageUrl))) 
+                    : null,
                 child: patient.imageUrl.isEmpty ? Text(
                   patient.initials,
                   style: AppTypography.titleMedium.copyWith(color: AppColors.primary),

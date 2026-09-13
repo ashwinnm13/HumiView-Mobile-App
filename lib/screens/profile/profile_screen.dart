@@ -8,10 +8,69 @@ import '../../core/constants/app_icons.dart';
 import '../../core/responsive/responsive_utils.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import '../../widgets/common/app_card.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  String _imageUrl = '';
+
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: source);
+    if (image != null) {
+      setState(() {
+        _imageUrl = image.path;
+      });
+    }
+  }
+
+  void _showImageSourceActionSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Wrap(
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Text(
+                  'Select Profile Photo',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_camera, color: AppColors.primary),
+                title: const Text('Open camera'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library, color: AppColors.primary),
+                title: const Text('Open files (Gallery)'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,16 +112,36 @@ class ProfileScreen extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       child: Row(
         children: [
-          const CircleAvatar(
-            radius: 40,
-            backgroundColor: AppColors.primary,
-            child: Text(
-              'DS',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+          GestureDetector(
+            onTap: _showImageSourceActionSheet,
+            child: Stack(
+              children: [
+                CircleAvatar(
+                  radius: 40,
+                  backgroundColor: AppColors.primary,
+                  backgroundImage: _imageUrl.isNotEmpty ? FileImage(File(_imageUrl)) : null,
+                  child: _imageUrl.isEmpty ? const Text(
+                    'DS',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ) : null,
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(width: 20),
@@ -82,7 +161,7 @@ class ProfileScreen extends StatelessWidget {
                     const Icon(AppIcons.hospital, size: 16, color: AppColors.textSecondary),
                     const SizedBox(width: 4),
                     Text(
-                      'City General Hospital',
+                      'JIPMER',
                       style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
                     ),
                   ],

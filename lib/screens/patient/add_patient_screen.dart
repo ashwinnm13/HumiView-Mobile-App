@@ -7,9 +7,11 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/constants/app_icons.dart';
 import '../../providers/patient_provider.dart';
+import '../../data/models/patient.dart';
 
 class AddPatientScreen extends StatefulWidget {
-  const AddPatientScreen({super.key});
+  final Patient? patient;
+  const AddPatientScreen({super.key, this.patient});
 
   @override
   State<AddPatientScreen> createState() => _AddPatientScreenState();
@@ -26,6 +28,20 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
   bool _isSubmitting = false;
   
   @override
+  void initState() {
+    super.initState();
+    if (widget.patient != null) {
+      final p = widget.patient!;
+      _nameController.text = p.name;
+      _ageController.text = p.age?.toString() ?? '';
+      _wardController.text = p.roomNumber;
+      _deviceController.text = p.deviceId;
+      _admissionDate = p.admissionDate;
+      _imageUrl = p.imageUrl;
+    }
+  }
+  
+  @override
   void dispose() {
     _nameController.dispose();
     _ageController.dispose();
@@ -34,33 +50,96 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
     super.dispose();
   }
 
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: source);
+    if (image != null) {
+      setState(() {
+        _imageUrl = image.path;
+      });
+    }
+  }
+
+  void _showImageSourceActionSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Wrap(
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Text(
+                  'Select Photo',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_camera, color: AppColors.primary),
+                title: const Text('Open camera'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library, color: AppColors.primary),
+                title: const Text('Open files (Gallery)'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     setState(() => _isSubmitting = true);
 
     final provider = context.read<PatientProvider>();
-    final success = await provider.addPatient(
-      name: _nameController.text.trim(),
-      age: int.tryParse(_ageController.text.trim()),
-      admissionDate: _admissionDate,
-      imageUrl: _imageUrl,
-      roomNumber: _wardController.text.trim(),
-      deviceId: _deviceController.text.trim(),
-    );
+    bool success;
+    if (widget.patient != null) {
+      success = await provider.updatePatientInfo(
+        id: widget.patient!.id,
+        name: _nameController.text.trim(),
+        age: int.tryParse(_ageController.text.trim()),
+        admissionDate: _admissionDate,
+        imageUrl: _imageUrl,
+        roomNumber: _wardController.text.trim(),
+        deviceId: _deviceController.text.trim(),
+      );
+    } else {
+      success = await provider.addPatient(
+        name: _nameController.text.trim(),
+        age: int.tryParse(_ageController.text.trim()),
+        admissionDate: _admissionDate,
+        imageUrl: _imageUrl,
+        roomNumber: _wardController.text.trim(),
+        deviceId: _deviceController.text.trim(),
+      );
+    }
 
     if (!mounted) return;
     setState(() => _isSubmitting = false);
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Patient added successfully')),
+        SnackBar(content: Text(widget.patient != null ? 'Patient updated successfully' : 'Patient added successfully')),
       );
       context.pop();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(provider.errorMessage ?? 'Failed to add patient'),
+          content: Text(provider.errorMessage ?? (widget.patient != null ? 'Failed to update patient' : 'Failed to add patient')),
           backgroundColor: Colors.red,
         ),
       );
@@ -69,9 +148,10 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.patient != null;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Patient'),
+        title: Text(isEditing ? 'Edit Patient' : 'Add Patient'),
         leading: IconButton(
           icon: const Icon(AppIcons.back),
           onPressed: () => context.pop(),
@@ -104,15 +184,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                         ),
                         child: IconButton(
                           icon: const Icon(Icons.camera_alt, size: 20, color: Colors.white),
-                          onPressed: () async {
-                            final picker = ImagePicker();
-                            final image = await picker.pickImage(source: ImageSource.gallery);
-                            if (image != null) {
-                              setState(() {
-                                _imageUrl = image.path;
-                              });
-                            }
-                          },
+                          onPressed: _showImageSourceActionSheet,
                         ),
                       ),
                     ),
@@ -192,7 +264,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Add Patient'),
+                    : Text(isEditing ? 'Update Patient' : 'Add Patient'),
               ),
             ],
           ),

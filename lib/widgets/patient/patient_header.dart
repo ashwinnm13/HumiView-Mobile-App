@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/constants/app_icons.dart';
@@ -17,14 +19,35 @@ class PatientHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        CircleAvatar(
-          radius: 28,
-          backgroundColor: AppColors.primarySurface,
-          backgroundImage: patient.imageUrl.isNotEmpty ? NetworkImage(patient.imageUrl) : null,
-          child: patient.imageUrl.isEmpty ? Text(
-            patient.initials,
-            style: AppTypography.titleLarge.copyWith(color: AppColors.primary),
-          ) : null,
+        GestureDetector(
+          onTap: () => context.push('/add-patient', extra: patient),
+          child: Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              CircleAvatar(
+                radius: 28,
+                backgroundColor: AppColors.primarySurface,
+                backgroundImage: patient.imageUrl.isNotEmpty 
+                    ? (patient.imageUrl.startsWith('http') 
+                        ? NetworkImage(patient.imageUrl) as ImageProvider 
+                        : FileImage(File(patient.imageUrl))) 
+                    : null,
+                child: patient.imageUrl.isEmpty ? Text(
+                  patient.initials,
+                  style: AppTypography.titleLarge.copyWith(color: AppColors.primary),
+                ) : null,
+              ),
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.surface, width: 2),
+                ),
+                child: const Icon(Icons.edit, size: 12, color: Colors.white),
+              ),
+            ],
+          ),
         ),
         const SizedBox(width: 16),
         Expanded(

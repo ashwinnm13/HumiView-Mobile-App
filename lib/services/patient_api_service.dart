@@ -63,6 +63,38 @@ class PatientApiService {
     }
   }
 
+  /// Updates an existing patient via `PUT /api/patients/{id}`.
+  Future<Patient> updatePatient(Patient patient) async {
+    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.patientsEndpoint}/${patient.id}');
+
+    try {
+      final response = await _client
+          .put(
+            uri,
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode(patient.toJson()),
+          )
+          .timeout(ApiConstants.connectionTimeout);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (response.body.trim().isNotEmpty) {
+          final json = jsonDecode(response.body) as Map<String, dynamic>;
+          return Patient.fromJson(json);
+        }
+        return patient;
+      } else {
+        throw HttpException(
+          'Failed to update patient: ${response.statusCode} ${response.reasonPhrase}',
+        );
+      }
+    } on SocketException {
+      throw const SocketException('Could not connect to the server. Is the backend running?');
+    }
+  }
+
   /// Disposes the underlying HTTP client.
   void dispose() {
     _client.close();
